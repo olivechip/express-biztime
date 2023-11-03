@@ -14,14 +14,12 @@ const iRoutes = require("./routes/invoices");
 app.use("/invoices", iRoutes);
 
 /** 404 Handler */
-
 app.use(function(req, res, next) {
   const err = new ExpressError("Not Found", 404);
   return next(err);
 });
 
 /** General Error Handler */
-
 app.use((err, req, res, next) => {
   res.status(err.status || 500);
 
