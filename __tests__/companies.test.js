@@ -46,7 +46,7 @@ describe('POST routes', function(){
             description: 'Store that sells pets of all species'
         });
         expect(results.statusCode).toBe(201);
-        expect(results.body.company.code).toEqual('PETS');
+        expect(results.body.company.code).toEqual('the-pet-store');
         expect((await request(app).get('/companies')).body.companies).toHaveLength(2);
     });
     test('Should return error if missing data', async function(){

@@ -52,15 +52,27 @@ router.post('/', async (req, res, next) => {
 })
 
 router.put('/:id', async (req, res, next) => {
-    try {
-        if (!req.body.amt){
-            throw new ExpressError("amt is required.", 400)
+    try {3
+        if (req.body.amt === undefined || req.body.paid === undefined){
+            throw new ExpressError("amt and paid status are required.", 400)
         }
-        const { amt } = req.body;
-        const results = await db.query(`UPDATE invoices SET amt=$2 WHERE id=$1 
-        RETURNING id, comp_code, amt, paid, add_date, paid_date`, [req.params.id, amt]);
-        if (results.rows.length === 0){
+        const { amt, paid } = req.body;
+
+        const invoice = await db.query(`SELECT paid FROM invoices WHERE id =$1`, [req.params.id])
+        if (invoice.rows.length === 0){
             return next();
+        }
+
+        let results;
+        if (!invoice.rows[0].paid_date && paid === true){
+            results = await db.query(`UPDATE invoices SET amt=$2, paid=$3, paid_date=$4 WHERE id=$1 
+            RETURNING id, comp_code, amt, paid, add_date, paid_date`, [req.params.id, amt, true, new Date()]);
+        } else if (paid === false){
+            results = await db.query(`UPDATE invoices SET amt=$2, paid=$3, paid_date=$4 WHERE id=$1 
+            RETURNING id, comp_code, amt, paid, add_date, paid_date`, [req.params.id, amt, false, null]);
+        } else {
+            results = await db.query(`UPDATE invoices SET amt=$2, paid=$3, paid_date=$4 WHERE id=$1 
+            RETURNING id, comp_code, amt, paid, add_date, paid_date`, [req.params.id, amt, true, !invoice.rows[0].paid_date]);
         }
         return res.json( {invoice: results.rows[0]} );
     } catch (err) {
